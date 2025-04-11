@@ -12,7 +12,7 @@ const Register = () => {
     e.preventDefault();
     try {
       const response = await registerUser(form);
-      alert('Inscription réussie');
+      alert('Utilisateur créé avec succès');
       // Rediriger vers la page de connexion
       window.location.href = '/login';
     } catch (error) {

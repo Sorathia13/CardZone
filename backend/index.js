@@ -9,12 +9,8 @@ const cardRoutes = require('./routes/card');
 dotenv.config();
 const app = express();
 app.use(express.json());
-app.use(cors());
 
-app.use('/api/auth', authRoutes);
-app.use('/api', protectedRoutes);
-app.use('/api/cards', cardRoutes);
-
+// Configuration CORS correcte
 const corsOptions = {
     origin: 'http://localhost:3000', // Autoriser uniquement cette origine
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Méthodes HTTP autorisées
@@ -22,6 +18,10 @@ const corsOptions = {
     credentials: true, // Autoriser les cookies et les en-têtes d'autorisation
 };
 app.use(cors(corsOptions));
+
+app.use('/api/auth', authRoutes);
+app.use('/api', protectedRoutes);
+app.use('/api/cards', cardRoutes);
 
 app.get('/', (req, res) => {
   res.send('Bienvenue sur l’API du site de vente de cartes');

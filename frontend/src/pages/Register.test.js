@@ -5,10 +5,7 @@ import * as api from '../services/api';
 
 // Mock des dépendances
 jest.mock('../services/api');
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => jest.fn(),
-}));
+jest.mock('react-router-dom');
 
 describe('Composant Register', () => {
   beforeEach(() => {

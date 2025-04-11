@@ -2,28 +2,47 @@ const request = require("supertest");
 const { app, server, closeConnections } = require("../index");
 const mongoose = require("mongoose");
 const Card = require("../models/Card");
+const User = require("../models/User");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 describe("Card API", () => {
   let cardId;
+  let authToken;
+  let testUser;
 
   beforeAll(async () => {
     await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
+
+    // Créer un utilisateur de test pour l'authentification
+    testUser = await User.create({
+      username: `cardtest_user_${Date.now()}`,
+      email: `cardtest_${Date.now()}@example.com`,
+      password: "password123"
+    });
+
+    // Générer un token JWT pour cet utilisateur
+    authToken = jwt.sign({ id: testUser._id }, process.env.JWT_SECRET);
   });
 
   afterAll(async () => {
-    await closeConnections(); // Fermez MongoDB et le serveur après les tests
+    // Nettoyer après les tests
+    await User.findByIdAndDelete(testUser._id);
+    await closeConnections(); 
   });
 
   test("Ajout d'une carte", async () => {
-    const res = await request(app).post("/api/cards").send({
-      name: "Carte Test",
-      category: "Catégorie Test",
-      price: 100,
-    });
+    const res = await request(app)
+      .post("/api/cards")
+      .set("Authorization", authToken)
+      .send({
+        name: "Carte Test",
+        category: "Catégorie Test",
+        price: 100,
+      });
 
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty("_id");
@@ -35,11 +54,14 @@ describe("Card API", () => {
   });
 
   test("Modification d'une carte", async () => {
-    const res = await request(app).put(`/api/cards/${cardId}`).send({
-      name: "Carte Modifiée",
-      category: "Catégorie Modifiée",
-      price: 150,
-    });
+    const res = await request(app)
+      .put(`/api/cards/${cardId}`)
+      .set("Authorization", authToken)
+      .send({
+        name: "Carte Modifiée",
+        category: "Catégorie Modifiée",
+        price: 150,
+      });
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty("_id");
@@ -49,7 +71,9 @@ describe("Card API", () => {
   });
 
   test("Suppression d'une carte", async () => {
-    const res = await request(app).delete(`/api/cards/${cardId}`);
+    const res = await request(app)
+      .delete(`/api/cards/${cardId}`)
+      .set("Authorization", authToken);
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty("message", "Carte supprimée avec succès");

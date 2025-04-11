@@ -1,10 +1,11 @@
 const express = require('express');
 const Card = require('../models/Card');
+const { auth } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// Ajouter une carte
-router.post('/', async (req, res) => {
+// Ajouter une carte - Route protégée
+router.post('/', auth, async (req, res) => {
   try {
     const { name, category, price } = req.body;
     const newCard = new Card({ name, category, price });
@@ -15,8 +16,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Modifier une carte
-router.put('/:id', async (req, res) => {
+// Modifier une carte - Route protégée
+router.put('/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
     const { name, category, price } = req.body;
@@ -28,8 +29,8 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Supprimer une carte
-router.delete('/:id', async (req, res) => {
+// Supprimer une carte - Route protégée
+router.delete('/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
     const deletedCard = await Card.findByIdAndDelete(id);
@@ -40,7 +41,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Récupérer toutes les cartes
+// Récupérer toutes les cartes - Route accessible à tous
 router.get('/', async (req, res) => {
   try {
     const { category, name, minPrice, maxPrice } = req.query;
@@ -70,7 +71,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Récupérer une carte par son ID
+// Récupérer une carte par son ID - Route accessible à tous
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
