@@ -13,7 +13,7 @@ describe("Auth API", () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    server = app.listen(3000); // Utiliser le port 3000 pour les tests
+    server = app.listen(0); // Utiliser un port dynamique pour le test
   });
 
   beforeEach(async () => {
