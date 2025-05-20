@@ -24,10 +24,16 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - name: Run tests
+      - name: Run backend tests
+        working-directory: ./backend
         run: |
           npm install
           npm test
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm test -- --watchAll=false
 
   deploy:
     runs-on: ubuntu-latest
