@@ -100,11 +100,25 @@ describe('Composant Register', () => {
   test('Vérifie la validation du formulaire - champs obligatoires', async () => {
     render(<Register />);
     
-    const submitButton = screen.getByRole('button', { name: /s'inscrire/i });
-    fireEvent.click(submitButton);
+    // Simuler les champs vides
+    const usernameInput = screen.getByPlaceholderText(/nom d'utilisateur/i);
+    const emailInput = screen.getByPlaceholderText(/email/i);
+    const passwordInput = screen.getByPlaceholderText(/mot de passe/i);
     
-    // Si votre formulaire a une validation native HTML
-    // Test que l'API n'a pas été appelée si les champs sont vides
-    expect(api.registerUser).not.toHaveBeenCalled();
+    // S'assurer que les champs sont vides
+    fireEvent.change(usernameInput, { target: { value: '' } });
+    fireEvent.change(emailInput, { target: { value: '' } });
+    fireEvent.change(passwordInput, { target: { value: '' } });
+    
+    const submitButton = screen.getByRole('button', { name: /s'inscrire/i });
+    
+    // Simuler la soumission
+    fireEvent.submit(screen.getByRole('form'));
+    
+    // Donner du temps pour que les handlers s'exécutent
+    await waitFor(() => {
+      // Vérifier que l'API n'a pas été appelée
+      expect(api.registerUser).not.toHaveBeenCalled();
+    });
   });
 });

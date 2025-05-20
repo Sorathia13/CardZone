@@ -12,13 +12,16 @@ describe('Composant Login', () => {
     // Clear all mocks before each test
     jest.clearAllMocks();
     
-    // Mock localStorage
-    const localStorageMock = {
-      getItem: jest.fn(),
-      setItem: jest.fn(),
-      clear: jest.fn()
-    };
-    global.localStorage = localStorageMock;
+    // Mock localStorage de manière appropriée
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: jest.fn(),
+        setItem: jest.fn(),
+        removeItem: jest.fn(),
+        clear: jest.fn()
+      },
+      writable: true
+    });
     
     // Mock window.alert
     global.alert = jest.fn();

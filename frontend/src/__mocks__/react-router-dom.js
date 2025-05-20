@@ -1,19 +1,25 @@
-// Mock de react-router-dom pour les tests
-const reactRouterDom = jest.createMockFromModule('react-router-dom');
+// Mock manuel de react-router-dom pour les tests
+const reactRouterDom = {
+  // Mock pour useNavigate
+  useNavigate: jest.fn(() => jest.fn()),
+  
+  // Mock pour BrowserRouter
+  BrowserRouter: ({ children }) => children,
+  
+  // Mock pour Routes
+  Routes: ({ children }) => children,
+  
+  // Mock pour Route
+  Route: ({ children }) => children,
+  
+  // Mock pour Link
+  Link: ({ children, to }) => children,
 
-// Mock pour useNavigate
-reactRouterDom.useNavigate = jest.fn(() => jest.fn());
+  // Mock pour useParams
+  useParams: jest.fn(() => ({})),
 
-// Mock pour BrowserRouter
-reactRouterDom.BrowserRouter = ({ children }) => children;
-
-// Mock pour Routes
-reactRouterDom.Routes = ({ children }) => children;
-
-// Mock pour Route
-reactRouterDom.Route = ({ children }) => children;
-
-// Mock pour Link
-reactRouterDom.Link = ({ children, to }) => children;
+  // Mock pour useLocation
+  useLocation: jest.fn(() => ({ pathname: '/' }))
+};
 
 module.exports = reactRouterDom;

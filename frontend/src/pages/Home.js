@@ -24,7 +24,7 @@ const Home = () => {
             const data = await response.json();
             console.log('Carte ajoutée :', data);
         } catch (error) {
-            console.error('Erreur lors de l’ajout de la carte :', error);
+            console.error("Erreur lors de l'ajout de la carte :", error);
         }
     };
 
