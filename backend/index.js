@@ -24,7 +24,7 @@ app.use('/api', protectedRoutes);
 app.use('/api/cards', cardRoutes);
 
 app.get('/', (req, res) => {
-  res.send('Bienvenue sur l'API du site de vente de cartes');
+  res.send("Bienvenue sur l'API du site de vente de cartes");
 });
 
 let server; // Déclarez le serveur en dehors pour éviter les conflits
