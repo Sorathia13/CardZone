@@ -8,10 +8,12 @@ services:
       - "5000:5000"
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb+srv://kimi:kimikimikimi@cluster0.9vmkx.mongodb.net/cardzonedb?retryWrites=true&w=majority
-      - JWT_SECRET=cestunedingueriedefaireca
+      - MONGODB_URI=${MONGODB_URI}
+      - JWT_SECRET=${JWT_SECRET}
       - PORT=5000
     restart: unless-stopped
+    env_file:
+      - ./.env
 
   # Service pour le frontend (à décommenter quand vous êtes prêt à l'ajouter)
   # frontend:
