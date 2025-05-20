@@ -1,32 +1,37 @@
 const request = require("supertest");
-const { app, closeConnections } = require("../index"); // Importer l'instance du serveur et la fonction de fermeture
+const { app, startServer, connectDB, closeConnections } = require("../index");
 const mongoose = require("mongoose");
-const User = require("../models/User"); // Modifie selon ton modèle
-const bcrypt = require("bcrypt"); // Importer bcrypt pour le hachage des mots de passe
-require('dotenv').config(); // Charger les variables d'environnement
+const User = require("../models/User");
+const bcryptjs = require("bcryptjs"); // Remplacé bcrypt par bcryptjs
+require('dotenv').config();
 
 let server;
 
 describe("Auth API", () => {
   beforeAll(async () => {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    server = app.listen(0); // Utiliser un port dynamique pour le test
+    await connectDB(); // Utiliser la fonction connectDB améliorée
+    server = startServer(); // Utiliser la fonction startServer améliorée
   });
 
   beforeEach(async () => {
     // Supprimer tous les utilisateurs avant chaque test
     await User.deleteMany({});
+    
+    // Créer un utilisateur de test pour les tests de connexion
+    const hashedPassword = await bcryptjs.hash("password123", 10);
+    await User.create({
+      username: "testuser",
+      email: "testuser@example.com",
+      password: hashedPassword
+    });
   });
 
   afterAll(async () => {
-    await closeConnections(); // Fermez MongoDB et le serveur après les tests
+    await closeConnections(); // Fermer MongoDB et le serveur après les tests
   });
 
   test("Inscription réussie", async () => {
-    const uniqueEmail = `test_${Date.now()}@example.com`; // Générer un email unique
+    const uniqueEmail = `test_${Date.now()}@example.com`;
 
     const res = await request(app).post("/api/auth/register").send({
       username: "TestUser",
@@ -37,7 +42,7 @@ describe("Auth API", () => {
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty("message", "Utilisateur créé avec succès");
 
-    // Vérifiez que l'utilisateur a été créé dans la base de données
+    // Vérifier que l'utilisateur a été créé dans la base de données
     const user = await User.findOne({ email: uniqueEmail });
     expect(user).not.toBeNull();
     expect(user.username).toBe("TestUser");
@@ -49,8 +54,18 @@ describe("Auth API", () => {
       password: "password123",
     });
 
-    // Correction : Vérifiez si le statut est 400 ou ajustez la route pour retourner 200
-    expect(res.statusCode).toBe(400); // Changez en 200 si la route est corrigée
-    expect(res.body).toHaveProperty("message"); // Vérifiez un message d'erreur ou succès
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("token");
+    expect(res.body).toHaveProperty("user");
+  });
+  
+  test("Échec de connexion avec des identifiants incorrects", async () => {
+    const res = await request(app).post("/api/auth/login").send({
+      email: "testuser@example.com",
+      password: "mauvais_password",
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toHaveProperty("message");
   });
 });

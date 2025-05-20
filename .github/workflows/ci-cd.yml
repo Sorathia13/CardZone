@@ -22,6 +22,11 @@ jobs:
         image: mongo:6
         ports:
           - 27017:27017
+        options: >-
+          --health-cmd "echo 'db.runCommand({serverStatus:1}).ok' | mongo --quiet | grep 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -33,11 +38,19 @@ jobs:
         run: |
           echo "MONGODB_URI=mongodb://localhost:27017/cardzone_test" > backend/.env
           echo "JWT_SECRET=test_secret_for_ci" >> backend/.env
-          echo "PORT=5000" >> backend/.env
+          echo "PORT=5050" >> backend/.env
+          echo "NODE_ENV=test" >> backend/.env
+      - name: Install backend dependencies with bcryptjs
+        working-directory: ./backend
+        run: |
+          npm uninstall bcrypt
+          npm install bcryptjs
+          # Modification temporaire des imports bcrypt → bcryptjs
+          find . -type f -name "*.js" -exec sed -i 's/require("bcrypt")/require("bcryptjs")/g' {} \;
+          npm install
       - name: Run backend tests
         working-directory: ./backend
         run: |
-          npm install
           npm test
       - name: Run frontend tests
         working-directory: ./frontend

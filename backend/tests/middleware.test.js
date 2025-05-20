@@ -25,6 +25,19 @@ describe('Middleware d\'authentification', () => {
     nextFunction = jest.fn();
   });
 
+  beforeAll(async () => {
+    // S'assurer que la connexion MongoDB est établie avant les tests
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+  });
+
+  afterAll(async () => {
+    // Fermer correctement la connexion MongoDB après les tests
+    await mongoose.connection.close();
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });

@@ -1,22 +1,22 @@
 const request = require("supertest");
-const { app, closeConnections } = require("../index");
+const { app, connectDB, startServer, closeConnections } = require("../index");
 const mongoose = require("mongoose");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const bcryptjs = require("bcryptjs"); // Remplacé bcrypt par bcryptjs
 require("dotenv").config();
 
 describe("Routes protégées API", () => {
   let token;
   let userId;
+  let server;
 
   beforeAll(async () => {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await connectDB(); // Utiliser la fonction connectDB améliorée
+    server = startServer(); // Utiliser la fonction startServer améliorée
     
     // Créer un utilisateur pour les tests
-    const hashedPassword = await require("bcrypt").hash("password123", 10);
+    const hashedPassword = await bcryptjs.hash("password123", 10);
     const user = new User({
       username: "TestProtected",
       email: `protected_${Date.now()}@example.com`,
@@ -31,7 +31,7 @@ describe("Routes protégées API", () => {
 
   afterAll(async () => {
     await User.findByIdAndDelete(userId);
-    await closeConnections();
+    await closeConnections(); // Fermer proprement les connexions
   });
 
   test("Accès à une route protégée avec un token valide", async () => {

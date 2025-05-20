@@ -24,50 +24,77 @@ app.use('/api', protectedRoutes);
 app.use('/api/cards', cardRoutes);
 
 app.get('/', (req, res) => {
-  res.send('Bienvenue sur l’API du site de vente de cartes');
+  res.send('Bienvenue sur l'API du site de vente de cartes');
 });
 
-try {
-    console.log(process.env.MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      });
-    mongoose.connect(process.env.MONGODB_URI);
-    console.log('Connecté à MongoDB');
-} catch (error) {
-    console.error('Erreur de connexion à MongoDB:', error);
-}
-
 let server; // Déclarez le serveur en dehors pour éviter les conflits
+let mongoConnection = false;
 
-const startServer = () => {
-  const PORT = process.env.PORT || 5000;
-  server = app.listen(PORT, () => console.log(`Serveur lancé sur le port ${PORT}`));
-};
-
-if (!server || process.env.NODE_ENV !== 'test') {
-  startServer();
-}
-
-// Ajout pour fermer MongoDB et le serveur proprement
-const closeConnections = async () => {
-  await mongoose.connection.close();
-  console.log('Connexion MongoDB fermée.');
-  if (server) {
-    await new Promise((resolve) => {
-      server.close(() => {
-        console.log('Serveur arrêté.');
-        resolve();
-      });
+// Connexion à MongoDB améliorée avec gestion des erreurs
+const connectDB = async () => {
+  if (mongoConnection) return;
+  
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
+    console.log('Connecté à MongoDB');
+    mongoConnection = true;
+  } catch (error) {
+    console.error('Erreur de connexion à MongoDB:', error);
+    process.exit(1);
   }
 };
 
+const startServer = () => {
+  const PORT = process.env.PORT || 5000;
+  
+  // Éviter de créer plusieurs serveurs en environnement de test
+  if (server) return server;
+  
+  server = app.listen(PORT, () => console.log(`Serveur lancé sur le port ${PORT}`));
+  return server;
+};
+
+// Fonction améliorée pour fermer les connexions
+const closeConnections = async () => {
+  try {
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.connection.close();
+      console.log('Connexion MongoDB fermée.');
+      mongoConnection = false;
+    }
+    
+    if (server) {
+      await new Promise((resolve) => {
+        server.close(() => {
+          console.log('Serveur arrêté.');
+          server = null;
+          resolve();
+        });
+      });
+    }
+    return true;
+  } catch (err) {
+    console.error('Erreur lors de la fermeture des connexions:', err);
+    return false;
+  }
+};
+
+// En mode test, on expose les fonctions mais on ne démarre pas automatiquement
 if (process.env.NODE_ENV === 'test') {
+  // Ajout des gestionnaires de signal pour fermer proprement
   process.on('SIGINT', closeConnections);
   process.on('SIGTERM', closeConnections);
-  module.exports = { app, server, closeConnections };
-  console.log(process.env.NODE_ENV);
+  
+  module.exports = { app, startServer, connectDB, closeConnections };
 } else {
+  // En production, on connecte et démarre automatiquement
+  (async () => {
+    await connectDB();
+    startServer();
+  })();
+  
   module.exports = app;
 }
