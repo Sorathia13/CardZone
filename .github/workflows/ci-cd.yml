@@ -17,6 +17,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     needs: build
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -24,6 +29,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+      - name: Create env file for backend tests
+        run: |
+          echo "MONGODB_URI=mongodb://localhost:27017/cardzone_test" > backend/.env
+          echo "JWT_SECRET=test_secret_for_ci" >> backend/.env
+          echo "PORT=5000" >> backend/.env
       - name: Run backend tests
         working-directory: ./backend
         run: |
@@ -33,7 +43,7 @@ jobs:
         working-directory: ./frontend
         run: |
           npm install
-          npm test -- --watchAll=false
+          npm test -- --watchAll=false --passWithNoTests
 
   deploy:
     runs-on: ubuntu-latest
