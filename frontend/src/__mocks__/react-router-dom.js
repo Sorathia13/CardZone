@@ -1,7 +1,9 @@
 // Mock manuel de react-router-dom pour les tests
+const navigate = jest.fn();
+
 const reactRouterDom = {
-  // Mock pour useNavigate
-  useNavigate: jest.fn(() => jest.fn()),
+  // Mock pour useNavigate - retourne toujours une fonction
+  useNavigate: jest.fn(() => navigate),
   
   // Mock pour BrowserRouter
   BrowserRouter: ({ children }) => children,

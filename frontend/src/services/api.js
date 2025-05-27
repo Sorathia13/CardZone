@@ -46,6 +46,26 @@ export const loginUser = async (userData) => {
   return api.post('/api/auth/login', userData);
 };
 
+// Fonction pour récupérer les cartes de l'utilisateur
+export const getCards = async () => {
+  return api.get('/api/cards');
+};
+
+// Fonction pour supprimer une carte
+export const deleteCard = async (cardId) => {
+  return api.delete(`/api/cards/${cardId}`);
+};
+
+// Fonction pour créer une nouvelle carte
+export const createCard = async (cardData) => {
+  return api.post('/api/cards', cardData);
+};
+
+// Fonction pour mettre à jour une carte
+export const updateCard = async (cardId, cardData) => {
+  return api.put(`/api/cards/${cardId}`, cardData);
+};
+
 // Fonction pour récupérer le message du backend
 export const getWelcomeMessage = async () => {
   const response = await api.get('/');

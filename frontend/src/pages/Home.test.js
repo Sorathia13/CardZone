@@ -1,4 +1,5 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '../test-utils';
 import '@testing-library/jest-dom';
 import Home from './Home';
 import { getWelcomeMessage } from '../services/api';

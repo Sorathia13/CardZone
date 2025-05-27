@@ -1,14 +1,13 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '../test-utils';
 import '@testing-library/jest-dom';
 import Dashboard from './Dashboard';
 import { AuthProvider } from '../context/AuthContext';
+import * as api from '../services/api';
 
 // Mock des dépendances
 jest.mock('react-router-dom');
-
-// Mock de fetch global
-global.fetch = jest.fn();
+jest.mock('../services/api');
 
 describe('Composant Dashboard', () => {
   const mockCards = [
@@ -32,10 +31,14 @@ describe('Composant Dashboard', () => {
     };
     Object.defineProperty(window, 'localStorage', { value: localStorageMock });
     
-    // Mock fetch pour simuler la récupération des cartes
-    global.fetch.mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockCards)
+    // Mock API pour simuler la récupération des cartes
+    api.getCards = jest.fn().mockResolvedValue({
+      data: mockCards
+    });
+    
+    // Mock API pour simuler la suppression d'une carte
+    api.deleteCard = jest.fn().mockResolvedValue({
+      data: { message: 'Carte supprimée avec succès' }
     });
     
     global.confirm = jest.fn();
@@ -52,19 +55,24 @@ describe('Composant Dashboard', () => {
     
     // Attendre que les cartes soient chargées
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('http://localhost:5000/api/cards', expect.any(Object));
+      expect(api.getCards).toHaveBeenCalled();
     });
     
-    // Vérifier l'affichage des cartes
-    await waitFor(() => {
-      expect(screen.getByText('Carte 1')).toBeInTheDocument();
-      expect(screen.getByText('Carte 2')).toBeInTheDocument();
-      expect(screen.getByText('Carte 3')).toBeInTheDocument();
-      
-      // Vérifier que les catégories et prix sont affichés
-      expect(screen.getByText('Catégorie A')).toBeInTheDocument();
-      expect(screen.getByText('100 €')).toBeInTheDocument();
-    });
+    // Vérifier l'affichage des cartes - utilisation de find au lieu de get pour laisser le temps au DOM de se mettre à jour
+    const carte1 = await screen.findByText('Carte 1');
+    expect(carte1).toBeInTheDocument();
+    
+    const carte2 = await screen.findByText('Carte 2');
+    expect(carte2).toBeInTheDocument();
+    
+    const carte3 = await screen.findByText('Carte 3');
+    expect(carte3).toBeInTheDocument();
+    
+    // Vérifier que les catégories et prix sont affichés
+    expect(screen.getByText('Catégorie A')).toBeInTheDocument();
+    
+    // Utiliser une regex pour trouver le prix, car il peut être séparé en plusieurs éléments de texte
+    expect(screen.getByText(/100/)).toBeInTheDocument();
   });
 
   test('Peut filtrer les cartes par catégorie', async () => {
@@ -101,26 +109,24 @@ describe('Composant Dashboard', () => {
     
     // Simuler le clic sur le bouton de tri par prix
     const sortButton = screen.getByText(/trier par prix/i);
+    
+    // Cliquer pour changer l'ordre en descendant
     fireEvent.click(sortButton);
     
-    // Vérifier l'ordre des cartes (supposons que l'ordre soit croissant)
-    const cardElements = screen.getAllByTestId('card-item');
-    expect(cardElements[0]).toHaveTextContent('Carte 1');
-    expect(cardElements[1]).toHaveTextContent('Carte 3');
-    expect(cardElements[2]).toHaveTextContent('Carte 2');
+    // Vérifier l'ordre des cartes (ordre descendant après le clic)
+    const cardElementsDesc = screen.getAllByTestId('card-item');
+    expect(cardElementsDesc[0]).toHaveTextContent('Carte 2'); // 200€
+    expect(cardElementsDesc[1]).toHaveTextContent('Carte 3'); // 150€ 
+    expect(cardElementsDesc[2]).toHaveTextContent('Carte 1'); // 100€
   });
 
   test('Peut supprimer une carte avec confirmation', async () => {
     // Mock de la confirmation (utilisateur clique sur "OK")
     global.confirm.mockReturnValueOnce(true);
     
-    // Mock de la réponse du fetch pour la suppression
-    global.fetch.mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue({ message: 'Carte supprimée avec succès' })
-    }).mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockCards.filter(card => card._id !== '1'))
+    // Mock de la réponse pour la suppression
+    api.deleteCard.mockResolvedValueOnce({
+      data: { message: 'Carte supprimée avec succès' }
     });
     
     render(
@@ -129,6 +135,7 @@ describe('Composant Dashboard', () => {
       </AuthProvider>
     );
     
+    // Attendre que les cartes soient chargées
     await waitFor(() => {
       expect(screen.getByText('Carte 1')).toBeInTheDocument();
     });
@@ -142,21 +149,21 @@ describe('Composant Dashboard', () => {
     
     // Vérifier que la requête de suppression a été envoyée
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('http://localhost:5000/api/cards/1', expect.objectContaining({
-        method: 'DELETE'
-      }));
+      expect(api.deleteCard).toHaveBeenCalledWith('1');
     });
     
-    // Vérifier que l'utilisateur est informé du succès
-    expect(global.alert).toHaveBeenCalledWith('Carte supprimée avec succès');
+    // Vérifier que l'utilisateur est informé du succès (attendre que l'alerte soit appelée)
+    await waitFor(() => {
+      expect(global.alert).toHaveBeenCalledWith('Carte supprimée avec succès');
+    });
   });
   
   test('Gère les erreurs lors du chargement des cartes', async () => {
     // Réinitialiser les mocks
-    global.fetch.mockReset();
+    api.getCards.mockReset();
     
     // Mock de fetch pour simuler une erreur
-    global.fetch.mockRejectedValueOnce(new Error('Erreur de chargement des cartes'));
+    api.getCards.mockRejectedValueOnce(new Error('Erreur de chargement des cartes'));
     
     render(
       <AuthProvider>
