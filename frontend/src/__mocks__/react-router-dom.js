@@ -1,27 +1,24 @@
 // Mock manuel de react-router-dom pour les tests
 const navigate = jest.fn();
 
+// Exporter directement les fonctions et composants mockés
+export const useNavigate = jest.fn(() => navigate);
+export const BrowserRouter = ({ children }) => children;
+export const Routes = ({ children }) => children;
+export const Route = ({ children }) => children;
+export const Link = ({ children, to }) => children;
+export const useParams = jest.fn(() => ({}));
+export const useLocation = jest.fn(() => ({ pathname: '/' }));
+
+// Pour les imports avec le style: import * as router from 'react-router-dom'
 const reactRouterDom = {
-  // Mock pour useNavigate - retourne toujours une fonction
-  useNavigate: jest.fn(() => navigate),
-  
-  // Mock pour BrowserRouter
-  BrowserRouter: ({ children }) => children,
-  
-  // Mock pour Routes
-  Routes: ({ children }) => children,
-  
-  // Mock pour Route
-  Route: ({ children }) => children,
-  
-  // Mock pour Link
-  Link: ({ children, to }) => children,
-
-  // Mock pour useParams
-  useParams: jest.fn(() => ({})),
-
-  // Mock pour useLocation
-  useLocation: jest.fn(() => ({ pathname: '/' }))
+  useNavigate,
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useParams,
+  useLocation
 };
 
-module.exports = reactRouterDom;
+export default reactRouterDom;
