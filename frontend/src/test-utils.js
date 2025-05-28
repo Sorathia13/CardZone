@@ -1,14 +1,24 @@
 // src/test-utils.js
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render as rtlRender, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act } from 'react';
 
 /**
- * Ce fichier ré-exporte les fonctions de React Testing Library
- * sans modification pour éviter les conflits avec act()
+ * Ce fichier remplace les imports de React Testing Library
+ * pour supprimer les avertissements concernant ReactDOMTestUtils.act
  */
 
-// Exporter directement la fonction render de React Testing Library
-export { render, screen, fireEvent, waitFor };
+// Utiliser cette fonction de rendu au lieu de celle de React Testing Library
+function render(ui, options) {
+  let result;
+  act(() => {
+    result = rtlRender(ui, options);
+  });
+  return result;
+}
 
-// Exporter act depuis React pour les cas où nous en avons besoin
-export { act } from 'react';
+// Exporter les fonctions nécessaires pour les tests
+export { screen, fireEvent, waitFor, act };
+
+// Remplacer la fonction render par notre version
+export { render };

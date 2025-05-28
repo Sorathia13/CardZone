@@ -6,10 +6,7 @@ import { AuthProvider } from '../context/AuthContext';
 import * as api from '../services/api';
 
 // Mock des dépendances
-const mockNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  useNavigate: () => mockNavigate,
-}));
+jest.mock('react-router-dom');
 jest.mock('../services/api');
 
 describe('Composant Dashboard', () => {
@@ -21,7 +18,6 @@ describe('Composant Dashboard', () => {
   
   beforeEach(() => {
     jest.clearAllMocks();
-    mockNavigate.mockClear();
     
     // Mock localStorage pour simuler un utilisateur connecté
     const localStorageMock = {

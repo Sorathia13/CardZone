@@ -1,0 +1,29 @@
+{
+  "services": [
+    {
+      "type": "web",
+      "name": "cardzone-backend",
+      "env": "docker",
+      "dockerfilePath": "./Dockerfile",
+      "plan": "free",
+      "region": "oregon",
+      "envVars": [
+        {
+          "key": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "key": "PORT",
+          "value": "5000"
+        }
+      ]
+    }
+  ],
+  "databases": [
+    {
+      "name": "cardzone-mongodb",
+      "databaseName": "cardzone",
+      "user": "cardzone"
+    }
+  ]
+}

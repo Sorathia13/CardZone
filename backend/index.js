@@ -10,9 +10,13 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Configuration CORS correcte
+// Configuration CORS mise à jour pour Render
 const corsOptions = {
-    origin: 'http://localhost:3000', // Autoriser uniquement cette origine
+    origin: [
+        'http://localhost:3000', // Développement local
+        'https://cardzone-frontend.onrender.com', // Frontend sur Render
+        process.env.FRONTEND_URL // URL dynamique depuis les variables d'environnement
+    ].filter(Boolean), // Filtrer les valeurs undefined
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Méthodes HTTP autorisées
     allowedHeaders: ['Content-Type', 'Authorization'], // En-têtes autorisés
     credentials: true, // Autoriser les cookies et les en-têtes d'autorisation
@@ -22,6 +26,16 @@ app.use(cors(corsOptions));
 app.use('/api/auth', authRoutes);
 app.use('/api', protectedRoutes);
 app.use('/api/cards', cardRoutes);
+
+// Endpoint de santé pour Railway et autres plateformes
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 
 app.get('/', (req, res) => {
   res.send("Bienvenue sur l'API du site de vente de cartes");
