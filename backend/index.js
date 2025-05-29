@@ -48,15 +48,24 @@ let mongoConnection = false;
 const connectDB = async () => {
   if (mongoConnection) return;
   
+  // Vérifier que MONGODB_URI est défini
+  if (!process.env.MONGODB_URI) {
+    console.error('ERREUR: La variable d\'environnement MONGODB_URI n\'est pas définie!');
+    console.error('Variables d\'environnement disponibles:', Object.keys(process.env).filter(key => key.includes('MONGO')));
+    process.exit(1);
+  }
+  
   try {
+    console.log('Tentative de connexion à MongoDB...');
     await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log('Connecté à MongoDB');
+    console.log('Connecté à MongoDB avec succès');
     mongoConnection = true;
   } catch (error) {
     console.error('Erreur de connexion à MongoDB:', error);
+    console.error('URI utilisée:', process.env.MONGODB_URI ? 'Définie' : 'Non définie');
     process.exit(1);
   }
 };

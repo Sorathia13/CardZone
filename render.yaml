@@ -14,7 +14,22 @@
         },
         {
           "key": "PORT",
-          "value": "5000"
+          "value": "10000"
+        },
+        {
+          "key": "MONGODB_URI",
+          "fromDatabase": {
+            "name": "cardzone-mongodb",
+            "property": "connectionString"
+          }
+        },
+        {
+          "key": "JWT_SECRET",
+          "generateValue": true
+        },
+        {
+          "key": "FRONTEND_URL",
+          "value": "https://cardzone-frontend.onrender.com"
         }
       ]
     }
@@ -23,7 +38,8 @@
     {
       "name": "cardzone-mongodb",
       "databaseName": "cardzone",
-      "user": "cardzone"
+      "user": "cardzone",
+      "plan": "free"
     }
   ]
 }
