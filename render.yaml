@@ -15,6 +15,10 @@ services:
         generateValue: true
       - key: FRONTEND_URL
         value: https://cardzone-frontend.onrender.com
+      - key: RENDER
+        value: true
+    dependsOn:
+      - cardzone-mongodb
 
   - type: web
     name: cardzone-frontend

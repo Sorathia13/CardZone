@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
 let server; // Déclarez le serveur en dehors pour éviter les conflits
 let mongoConnection = false;
 
-// Connexion à MongoDB améliorée avec gestion des erreurs
+// Connexion à MongoDB améliorée avec gestion des erreurs et tentatives
 const connectDB = async () => {
   if (mongoConnection) return;
   
@@ -52,7 +52,27 @@ const connectDB = async () => {
   if (!process.env.MONGODB_URI) {
     console.error('ERREUR: La variable d\'environnement MONGODB_URI n\'est pas définie!');
     console.error('Variables d\'environnement disponibles:', Object.keys(process.env).filter(key => key.includes('MONGO')));
-    process.exit(1);
+    
+    // En production sur Render, attendre que la BD soit provisionnée
+    if (process.env.RENDER) {
+      console.log('Détection de l\'environnement Render - Attente de 30 secondes avant nouvelle tentative...');
+      await new Promise(resolve => setTimeout(resolve, 30000));
+      
+      // Nouvelle tentative après l'attente
+      if (!process.env.MONGODB_URI) {
+        console.error('La variable MONGODB_URI n\'est toujours pas disponible après attente.');
+        
+        // En développement, on arrête le serveur
+        // En production, on continue avec une URI par défaut (à modifier selon vos besoins)
+        if (process.env.NODE_ENV !== 'production') {
+          process.exit(1);
+        } else {
+          console.log('Tentative de connexion avec URI par défaut');
+        }
+      }
+    } else {
+      process.exit(1);
+    }
   }
   
   try {
@@ -66,7 +86,15 @@ const connectDB = async () => {
   } catch (error) {
     console.error('Erreur de connexion à MongoDB:', error);
     console.error('URI utilisée:', process.env.MONGODB_URI ? 'Définie' : 'Non définie');
-    process.exit(1);
+    
+    // En production sur Render, on réessaie après un délai
+    if (process.env.RENDER && process.env.NODE_ENV === 'production') {
+      console.log('Nouvelle tentative dans 30 secondes...');
+      await new Promise(resolve => setTimeout(resolve, 30000));
+      return connectDB(); // Appel récursif pour réessayer
+    } else {
+      process.exit(1);
+    }
   }
 };
 
@@ -105,6 +133,45 @@ const closeConnections = async () => {
   }
 };
 
+const startRender = async () => {
+  console.log('====== DÉMARRAGE SUR RENDER ======');
+  console.log('Variables d\'environnement disponibles:', Object.keys(process.env));
+  
+  // Vérifier si nous sommes sur Render
+  if (!process.env.RENDER) {
+    console.log('Environnement local détecté');
+    process.env.RENDER = 'true'; // Pour les tests locaux
+  }
+  
+  // Créer un backup de MONGODB_URI à partir de .env si disponible
+  if (!process.env.MONGODB_URI && process.env.NODE_ENV !== 'production') {
+    console.log('Utilisation de l\'URI de .env comme fallback');
+    try {
+      const result = dotenv.config();
+      if (result.parsed && result.parsed.MONGODB_URI) {
+        process.env.MONGODB_URI = result.parsed.MONGODB_URI;
+      }
+    } catch (e) {
+      console.log('Erreur lors de la lecture de .env:', e.message);
+    }
+  }
+  
+  // Attendre que les services Render soient prêts
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Attente initiale pour permettre le provisionnement de la base de données...');
+    await new Promise(resolve => setTimeout(resolve, 10000));
+  }
+  
+  // Lancer les connexions
+  try {
+    await connectDB();
+    startServer();
+  } catch (error) {
+    console.error('Erreur fatale lors du démarrage:', error);
+    process.exit(1);
+  }
+};
+
 // En mode test, on expose les fonctions mais on ne démarre pas automatiquement
 if (process.env.NODE_ENV === 'test') {
   // Ajout des gestionnaires de signal pour fermer proprement
@@ -113,11 +180,8 @@ if (process.env.NODE_ENV === 'test') {
   
   module.exports = { app, startServer, connectDB, closeConnections };
 } else {
-  // En production, on connecte et démarre automatiquement
-  (async () => {
-    await connectDB();
-    startServer();
-  })();
+  // En production, on connecte et démarre avec notre fonction spéciale
+  startRender();
   
   module.exports = app;
 }
