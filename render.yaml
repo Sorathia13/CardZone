@@ -1,45 +1,31 @@
-{
-  "services": [
-    {
-      "type": "web",
-      "name": "cardzone-backend",
-      "env": "docker",
-      "dockerfilePath": "./Dockerfile",
-      "plan": "free",
-      "region": "oregon",
-      "envVars": [
-        {
-          "key": "NODE_ENV",
-          "value": "production"
-        },
-        {
-          "key": "PORT",
-          "value": "10000"
-        },
-        {
-          "key": "MONGODB_URI",
-          "fromDatabase": {
-            "name": "cardzone-mongodb",
-            "property": "connectionString"
-          }
-        },
-        {
-          "key": "JWT_SECRET",
-          "generateValue": true
-        },
-        {
-          "key": "FRONTEND_URL",
-          "value": "https://cardzone-frontend.onrender.com"
-        }
-      ]
-    }
-  ],
-  "databases": [
-    {
-      "name": "cardzone-mongodb",
-      "databaseName": "cardzone",
-      "user": "cardzone",
-      "plan": "free"
-    }
-  ]
-}
+services:
+  - type: web
+    name: cardzone-backend
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        fromDatabase:
+          name: cardzone-mongodb
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://cardzone-frontend.onrender.com
+
+  - type: web
+    name: cardzone-frontend
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://cardzone-backend.onrender.com
+
+databases:
+  - name: cardzone-mongodb
+    databaseName: cardzone
+    user: cardzone_user
