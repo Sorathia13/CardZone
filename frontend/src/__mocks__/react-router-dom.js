@@ -5,8 +5,9 @@ const React = require('react');
 const mockNavigate = jest.fn();
 
 const reactRouterDom = {
+  ...jest.requireActual('react-router-dom'),
   // Mock pour useNavigate - retourne toujours la même fonction mock
-  useNavigate: jest.fn(() => mockNavigate),
+  useNavigate: () => mockNavigate,
   
   // Mock pour BrowserRouter
   BrowserRouter: ({ children }) => children,
@@ -18,18 +19,24 @@ const reactRouterDom = {
   Route: ({ children }) => children,
   
   // Mock pour Link
-  Link: ({ children, to, ...props }) => {
-    return React.createElement('a', { href: to, ...props }, children);
-  },
+  Link: ({ children, to, ...props }) => <a href={to} {...props}>{children}</a>,
+
+  // Mock pour NavLink
+  NavLink: ({ children, to, ...props }) => <a href={to} {...props}>{children}</a>,
 
   // Mock pour useParams
-  useParams: jest.fn(() => ({})),
+  useParams: () => ({}),
 
   // Mock pour useLocation
-  useLocation: jest.fn(() => ({ pathname: '/' })),
-
-  // Exporter mockNavigate pour pouvoir le réinitialiser dans les tests
-  __mockNavigate: mockNavigate
+  useLocation: () => ({ 
+    pathname: '/',
+    search: '',
+    hash: '',
+    state: null
+  })
 };
+
+// Exporter mockNavigate pour permettre aux tests de le réinitialiser
+reactRouterDom.__mockNavigate = mockNavigate;
 
 module.exports = reactRouterDom;

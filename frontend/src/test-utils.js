@@ -1,7 +1,7 @@
 // src/test-utils.js
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
-import { act } from 'react';
+import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 
 /**
@@ -10,29 +10,25 @@ import { AuthProvider } from './context/AuthContext';
  */
 
 // Utiliser cette fonction de rendu au lieu de celle de React Testing Library
-function render(ui, options = {}) {
-  const {
-    initialEntries = ['/'],
-    ...renderOptions
-  } = options;
+function render(ui, { route = '/', ...renderOptions } = {}) {
+  window.history.pushState({}, 'Test page', route);
 
-  let result;
-  act(() => {
-    result = rtlRender(ui, renderOptions);
-  });
-  return result;
-}
+  const Wrapper = ({ children }) => {
+    return (
+      <BrowserRouter>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </BrowserRouter>
+    );
+  };
 
-// Custom render function with AuthProvider
-export function renderWithAuth(ui, options = {}) {
-  return render(
-    <AuthProvider>
-      {ui}
-    </AuthProvider>,
-    options
-  );
+  // Utiliser React.act directement au lieu de ReactDOMTestUtils.act
+  return rtlRender(ui, { wrapper: Wrapper, ...renderOptions });
 }
 
 // re-export everything
 export * from '@testing-library/react';
+
+// override render method
 export { render };
