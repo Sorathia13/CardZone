@@ -31,5 +31,5 @@ services:
 
 databases:
   - name: cardzone-mongodb
-    databaseName: cardzone
+    databaseName: cardzonedb
     user: cardzone_user
