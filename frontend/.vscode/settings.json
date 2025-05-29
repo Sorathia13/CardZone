@@ -1,0 +1,8 @@
+{
+  "jest.jestCommandLine": "npm test",
+  "jest.rootPath": ".",
+  "jest.autoRun": {
+    "watch": false,
+    "onStartup": ["all-tests"]
+  }
+}

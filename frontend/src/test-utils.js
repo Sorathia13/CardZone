@@ -1,7 +1,8 @@
 // src/test-utils.js
 import React from 'react';
-import { render as rtlRender, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render as rtlRender } from '@testing-library/react';
 import { act } from 'react';
+import { AuthProvider } from './context/AuthContext';
 
 /**
  * Ce fichier remplace les imports de React Testing Library
@@ -9,16 +10,29 @@ import { act } from 'react';
  */
 
 // Utiliser cette fonction de rendu au lieu de celle de React Testing Library
-function render(ui, options) {
+function render(ui, options = {}) {
+  const {
+    initialEntries = ['/'],
+    ...renderOptions
+  } = options;
+
   let result;
   act(() => {
-    result = rtlRender(ui, options);
+    result = rtlRender(ui, renderOptions);
   });
   return result;
 }
 
-// Exporter les fonctions nécessaires pour les tests
-export { screen, fireEvent, waitFor, act };
+// Custom render function with AuthProvider
+export function renderWithAuth(ui, options = {}) {
+  return render(
+    <AuthProvider>
+      {ui}
+    </AuthProvider>,
+    options
+  );
+}
 
-// Remplacer la fonction render par notre version
+// re-export everything
+export * from '@testing-library/react';
 export { render };

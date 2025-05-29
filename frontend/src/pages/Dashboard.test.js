@@ -9,6 +9,9 @@ import * as api from '../services/api';
 jest.mock('react-router-dom');
 jest.mock('../services/api');
 
+// Importer le mock de react-router-dom pour accéder à __mockNavigate
+const { __mockNavigate } = require('react-router-dom');
+
 describe('Composant Dashboard', () => {
   const mockCards = [
     { _id: '1', name: 'Carte 1', category: 'Catégorie A', price: 100 },
@@ -18,6 +21,9 @@ describe('Composant Dashboard', () => {
   
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Réinitialiser le mock de navigate
+    __mockNavigate.mockClear();
     
     // Mock localStorage pour simuler un utilisateur connecté
     const localStorageMock = {

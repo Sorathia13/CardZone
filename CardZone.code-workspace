@@ -1,0 +1,28 @@
+{
+  "folders": [
+    {
+      "name": "CardZone Frontend",
+      "path": "./frontend"
+    },
+    {
+      "name": "CardZone Backend", 
+      "path": "./backend"
+    }
+  ],
+  "settings": {
+    "jest.autoRun": {
+      "watch": false,
+      "onStartup": ["all-tests"]
+    },
+    "jest.showCoverageOnLoad": true,
+    "jest.debugMode": true,
+    "jest.disabledWorkspaceFolders": [],
+    "jest.enable": true
+  },
+  "extensions": {
+    "recommendations": [
+      "orta.vscode-jest",
+      "ms-vscode.vscode-json"
+    ]
+  }
+}

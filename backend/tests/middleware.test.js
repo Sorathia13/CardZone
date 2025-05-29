@@ -61,9 +61,9 @@ describe('Middleware d\'authentification', () => {
   });
 
   test('Doit appeler next() si le token est valide', async () => {
-    // Créer un faux utilisateur pour le test
+    // Créer un faux utilisateur pour le test avec un nom unique
     const user = new User({
-      username: 'testuser',
+      username: `testuser_middleware_${Date.now()}`,
       email: `middleware_test_${Date.now()}@example.com`,
       password: 'password123'
     });

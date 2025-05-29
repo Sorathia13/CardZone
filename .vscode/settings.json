@@ -1,0 +1,14 @@
+{
+  "jest.jestCommandLine": "npm test --",
+  "jest.rootPath": "frontend",
+  "jest.autoRun": {
+    "watch": false,
+    "onStartup": ["all-tests"]
+  },
+  "jest.showCoverageOnLoad": true,
+  "jest.debugMode": true,
+  "jest.testMatch": [
+    "<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}",
+    "<rootDir>/src/**/?(*.)(spec|test).{js,jsx,ts,tsx}"
+  ]
+}
